@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Classroom Manager</title>
+<style>
+:root{
+  --bg:#07101f;--panel:#0e1a2e;--panel2:#13223a;--line:#243654;
+  --text:#f4f7fb;--muted:#93a4bd;--accent:#62a8ff;--good:#35d39a;
+  --bad:#ff5f6d;--gold:#ffd166;--shadow:0 18px 55px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(circle at 50% -10%,#17325a 0,#07101f 48%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;min-height:100vh}
+button,input{font:inherit}
+button{border:0;color:var(--text);cursor:pointer}
+.app{max-width:1180px;margin:auto;padding:18px 20px 34px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#62a8ff,#806cff);display:grid;place-items:center;font-size:22px;box-shadow:0 8px 30px rgba(98,168,255,.25)}
+h1{font-size:20px;margin:0;letter-spacing:-.4px}.sub{font-size:12px;color:var(--muted);margin-top:2px}
+.top-actions{display:flex;gap:8px}.iconbtn,.teacherbtn{background:#10213a;border:1px solid var(--line);border-radius:13px;padding:11px 14px}
+.teacherbtn{font-size:13px}
+.tabs{display:flex;gap:8px;background:rgba(14,26,46,.8);border:1px solid var(--line);padding:6px;border-radius:16px;margin-bottom:18px}
+.tab{flex:1;padding:12px;border-radius:11px;background:transparent;color:var(--muted);font-weight:700}
+.tab.active{background:#203653;color:white}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+.card{background:linear-gradient(145deg,rgba(19,34,58,.96),rgba(10,21,37,.96));border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.timer-card{padding:24px;text-align:center;position:relative;overflow:hidden}
+.timer-card:before{content:"";position:absolute;inset:-80px;background:radial-gradient(circle,rgba(98,168,255,.11),transparent 58%);pointer-events:none}
+.class-name{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;position:relative}
+.timer-wrap{width:min(350px,72vw);aspect-ratio:1;margin:22px auto;position:relative;display:grid;place-items:center}
+.ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--accent) var(--progress),#1d2d48 0);padding:11px;transition:background .2s linear}
+.ring:after{content:"";display:block;width:100%;height:100%;background:#091525;border-radius:50%;box-shadow:inset 0 0 45px rgba(0,0,0,.35)}
+.timer-wrap.bad .ring{background:conic-gradient(var(--bad) var(--progress),#321e2a 0)}
+.timer-wrap.good .ring{background:conic-gradient(var(--good) var(--progress),#18362f 0)}
+.timer-inner{position:relative;z-index:2}
+.time{font-size:clamp(54px,10vw,92px);font-weight:800;letter-spacing:-4px;font-variant-numeric:tabular-nums}
+.phase{font-size:13px;color:var(--muted);margin-top:4px}.status{margin-top:12px;min-height:24px;font-size:14px;font-weight:700}
+.status.good{color:var(--good)}.status.bad{color:var(--bad)}
+.controls{display:flex;gap:12px;justify-content:center;position:relative}
+.big{flex:1;max-width:230px;padding:17px 14px;border-radius:15px;font-weight:800;font-size:16px}
+.goodbtn{background:linear-gradient(135deg,#25c58d,#38dda8);color:#062118}.badbtn{background:#301d29;border:1px solid #6b3342;color:#ff9ca6}
+.smallrow{display:flex;gap:9px;justify-content:center;margin-top:12px}
+.secondary{background:#10213a;border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:#cbd6e6;font-size:13px}
+.side{display:grid;gap:16px}
+.bank{padding:22px}.label{color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.7px}
+.banknum{font-size:48px;font-weight:850;letter-spacing:-2px;margin:5px 0}
+.banknum span{font-size:20px;color:var(--muted);letter-spacing:0}
+.progress{height:10px;background:#0a1527;border-radius:99px;overflow:hidden;border:1px solid #20314c}
+.progress>div{height:100%;width:0;background:linear-gradient(90deg,#62a8ff,#35d39a);border-radius:inherit;transition:width .3s}
+.goal{display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--muted)}
+.reward{padding:22px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.reward-icon{font-size:31px}.reward h3{margin:0 0 4px;font-size:16px}.reward p{margin:0;color:var(--muted);font-size:12px}
+.redeem{background:#233755;padding:11px 13px;border-radius:12px;font-weight:800;white-space:nowrap}.redeem:disabled{opacity:.35}
+.history{padding:20px}.history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+.history-title{font-weight:800}.dots{display:flex;flex-wrap:wrap;gap:7px}.dot{width:19px;height:19px;border-radius:50%;background:#26364e;border:1px solid #344865}.dot.good{background:var(--good);border-color:transparent}.dot.bad{background:var(--bad);border-color:transparent}.dot.current{box-shadow:0 0 0 3px rgba(255,255,255,.12)}
+.empty{color:var(--muted);font-size:12px}
+.points{padding:22px}.points-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.points-total{font-size:38px;font-weight:850;color:var(--gold)}
+.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.quick button{padding:13px;border-radius:13px;background:#10213a;border:1px solid var(--line);text-align:left}.quick b{display:block}.quick span{font-size:12px;color:var(--muted)}
+.section{margin-top:16px}.student-list{display:grid;gap:9px}.student{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;background:#0e1b30;border:1px solid #1e304b;border-radius:13px}.student-main{display:flex;gap:10px;align-items:center}.avatar{width:35px;height:35px;border-radius:11px;background:#213653;display:grid;place-items:center;font-weight:800}.student small{display:block;color:var(--muted);font-size:11px}.student-actions{display:flex;align-items:center;gap:6px}.mini{width:34px;height:34px;border-radius:10px;background:#172942}.score{min-width:45px;text-align:center;font-weight:800;color:var(--gold)}
+.teacher{display:none}.teacher.open{display:block}
+.modal{display:none;position:fixed;inset:0;background:rgba(2,7,15,.76);backdrop-filter:blur(12px);z-index:20;padding:18px;overflow:auto}
+.modal-box{max-width:1000px;margin:4vh auto;background:#0b1729;border:1px solid #2b405e;border-radius:24px;box-shadow:0 30px 100px rgba(0,0,0,.55);overflow:hidden}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:20px}.teacher-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.tcard{background:#0f1d32;border:1px solid var(--line);border-radius:17px;padding:18px}.tcard h3{margin:0 0 12px}.classswitch{display:flex;gap:8px}.classswitch button{flex:1;padding:12px;border-radius:11px;background:#14253e;color:#9eb0c8}.classswitch button.active{background:#315783;color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stat{padding:12px;background:#0a1628;border-radius:12px}.stat b{font-size:22px;display:block}.stat span{font-size:11px;color:var(--muted)}
+.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.actions button{padding:13px;border-radius:12px;background:#172b47;border:1px solid #29415f;text-align:left}.actions .danger{background:#2c1822;border-color:#60303d;color:#ffb2ba}
+.teacher-students{margin-top:14px}.addstudent{display:flex;gap:8px}.addstudent input{flex:1;background:#091525;color:#fff;border:1px solid var(--line);border-radius:11px;padding:12px;outline:none}.notice{font-size:12px;color:var(--muted);line-height:1.45}
+.pin{display:grid;place-items:center;min-height:180px;padding:25px}.pin input{width:190px;text-align:center;font-size:28px;letter-spacing:8px;background:#091525;border:1px solid var(--line);border-radius:13px;color:#fff;padding:12px;outline:none}.pin button{margin-top:12px;background:#315783;border-radius:12px;padding:12px 25px;font-weight:800}
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:#13243b;border:1px solid #365274;padding:12px 17px;border-radius:13px;opacity:0;pointer-events:none;transition:.2s;z-index:50;font-size:13px;box-shadow:var(--shadow)}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:850px){.grid,.teacher-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.app{padding:13px 12px 25px}.top-actions .iconbtn{display:none}}
+@media(min-width:1000px){.quick{grid-template-columns:repeat(4,1fr)}}
+</style>
+
+<style>
+.reward-overlay,.redeem-choice{
+  display:none;position:fixed;inset:0;z-index:80;
+  background:rgba(2,7,15,.82);backdrop-filter:blur(12px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.reward-overlay.show,.redeem-choice.show{display:flex}
+.reward-celebration,.redeem-choice-box{
+  width:min(470px,100%);text-align:center;background:linear-gradient(145deg,#142b48,#0b1729);
+  border:1px solid #355171;border-radius:28px;padding:34px 26px;
+  box-shadow:0 30px 100px rgba(0,0,0,.55);position:relative;overflow:hidden;
+  animation:popIn .35s ease-out;
+}
+.celebration-icon,.choice-icon{font-size:54px;margin-bottom:8px}
+.celebration-kicker{font-size:11px;font-weight:900;letter-spacing:1.5px;color:#62a8ff}
+.reward-celebration h2,.redeem-choice-box h2{font-size:32px;margin:7px 0}
+.reward-celebration p,.redeem-choice-box p{color:#a9b8cc;margin:0 0 18px}
+.celebration-time{font-size:44px;font-weight:900;letter-spacing:-2px;margin:10px 0 22px}
+.celebration-close{min-width:150px}
+.choice-actions{display:grid;gap:10px;margin-top:20px}
+.choice-primary,.choice-secondary{
+  min-height:52px;border-radius:14px;padding:12px 15px;font-weight:800;
+}
+.choice-primary{background:linear-gradient(135deg,#35d39a,#62e5b0);color:#062118}
+.choice-secondary{background:#172b47;border:1px solid #304a69;color:#e8eef7}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti:before,.confetti:after{
+  content:"✦  •  ✦  •  ✦  •  ✦  •  ✦";
+  position:absolute;left:5%;top:-15%;font-size:28px;letter-spacing:28px;
+  animation:fall 1.7s linear infinite;opacity:.8;
+}
+.confetti:after{left:20%;animation-delay:.35s;font-size:20px}
+@keyframes popIn{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fall{to{transform:translateY(125vh) rotate(25deg)}}
+@media(prefers-reduced-motion:reduce){
+  .reward-celebration,.redeem-choice-box{animation:none}
+  .confetti:before,.confetti:after{animation:none}
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="logo">✦</div><div><h1>CLASSROOM MANAGER</h1><div class="sub">Unterricht · Zeitbank · Punkte · Belohnungen</div></div></div>
+    <div class="top-actions"><button class="iconbtn" onclick="fullscreen()">⛶</button><button class="teacherbtn" onclick="openTeacher()">🔒 Lehrer</button></div>
+  </header>
+
+  <nav class="tabs">
+    <button id="tab6" class="tab active" onclick="selectClass('6')">Ethik 6</button>
+    <button id="tab7" class="tab" onclick="selectClass('7')">Ethik 7</button>
+  </nav>
+
+  <main class="grid">
+    <section class="card timer-card">
+      <div class="class-name" id="classTitle">Ethik 6 · Konzentrationsphase</div>
+      <div class="timer-wrap" id="timerWrap"><div class="ring" id="ring"></div><div class="timer-inner"><div class="time" id="time">05:00</div><div class="phase" id="phase">Neue 5-Minuten-Phase</div><div class="status" id="status"></div></div></div>
+      <div class="controls">
+        <button class="big goodbtn" id="goodBtn" onclick="decide('good')">✓ GESCHAFFT</button>
+        <button class="big badbtn" id="badBtn" onclick="decide('bad')">✕ NICHT GESCHAFFT</button>
+      </div>
+      <div class="smallrow"><button class="secondary" onclick="resetPhase()">↻ Phase neu starten</button><button class="secondary" onclick="toggleTimer()" id="startBtn">▶ Start</button></div>
+    </section>
+
+    <aside class="side">
+      <section class="card bank">
+        <div class="label">Zeitbank</div>
+        <div class="banknum" id="bank">0 <span>Minuten</span></div>
+        <div class="progress"><div id="bankProgress"></div></div>
+        <div class="goal"><span id="goalText">0 / 45 Minuten</span><span id="goalPct">0%</span></div>
+      </section>
+      <section class="card reward">
+        <div style="display:flex;gap:12px;align-items:center"><div class="reward-icon">🏆</div><div><h3 id="rewardTitle">Entspannte Stunde</h3><p id="rewardText">45 Minuten sammeln</p></div></div>
+        <button class="redeem" id="redeemBtn" onclick="redeem45()" disabled>45 Min. erreicht</button>
+      </section>
+      <section class="card history">
+        <div class="history-head"><div class="history-title">5-Minuten-Verlauf</div><button class="secondary" onclick="clearHistory()">Leeren</button></div>
+        <div class="dots" id="dots"></div>
+      </section>
+    </aside>
+  </main>
+</div>
+<div class="modal" id="pinModal">
+  <div class="modal-box" style="max-width:430px">
+    <div class="modal-head"><b>Lehrerbereich</b><button class="secondary" onclick="closePin()">Schließen</button></div>
+    <div class="pin"><div class="label">PIN eingeben</div><input id="pinInput" inputmode="numeric" maxlength="4" type="password" onkeydown="if(event.key==='Enter')checkPin()"><button onclick="checkPin()">Öffnen</button></div>
+  </div>
+</div>
+
+<div class="modal teacher" id="teacherModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><b>Lehrer-Dashboard</b><div class="sub">Verwalte Klassen, Punkte, Zeitbank und Belohnungen</div></div><button class="secondary" onclick="closeTeacher()">Schließen</button></div>
+    <div class="modal-body">
+      <div class="teacher-grid">
+        <div class="tcard">
+          <h3>Klasse auswählen</h3>
+          <div class="classswitch">
+            <button id="t6" onclick="teacherClass('6')">Ethik 6</button>
+            <button id="t7" onclick="teacherClass('7')">Ethik 7</button>
+          </div>
+          <div class="stats" style="margin-top:14px">
+            <div class="stat"><b id="tsBank">0</b><span>Zeitbank · Min.</span></div>
+            <div class="stat"><b id="tsGood">0</b><span>Geschafft</span></div>
+            <div class="stat"><b id="tsBad">0</b><span>Nicht geschafft</span></div>
+            <div class="stat"><b id="tsTotal">0</b><span>Phasen gesamt</span></div>
+          </div>
+        </div>
+
+        <div class="tcard">
+          <h3>Zeitbank verwalten</h3>
+          <div class="actions">
+            <button onclick="adjustBank(5)">＋ <b>5 Minuten</b><br><small>Zeitbank erhöhen</small></button>
+            <button onclick="adjustBank(-5)">− <b>5 Minuten</b><br><small>Zeitbank verringern</small></button>
+            <button onclick="redeem45()">🏆 <b>Zeitbank verwenden</b><br><small>45 Min. einlösen oder auf 90 sparen</small></button>
+            <button onclick="clearHistory()">↻ <b>Verlauf löschen</b><br><small>Zeitbank bleibt erhalten</small></button>
+          </div>
+        </div>
+
+        <div class="tcard">
+          <h3>Unterrichtssteuerung</h3>
+          <div class="actions">
+            <button onclick="teacherStart()">▶ <b>Phase starten</b><br><small>Neue 5-Minuten-Phase</small></button>
+            <button onclick="teacherPause()">Ⅱ <b>Phase pausieren</b><br><small>Aktuelle Phase anhalten</small></button>
+            <button onclick="teacherResetPhase()">↻ <b>Nur aktuelle Phase</b><br><small>Neue Phase beginnen</small></button>
+            <button onclick="teacherClose()">✓ <b>Lehrerbereich schließen</b><br><small>Zur Unterrichtsansicht</small></button>
+          </div>
+        </div>
+
+        <div class="tcard">
+          <h3>Zurücksetzen</h3>
+          <p class="notice" style="margin-top:0">Hier kannst du gezielt den Verlauf oder die komplette Klasse zurücksetzen. Die Aktionen erfolgen direkt und sind für die aktuell ausgewählte Klasse.</p>
+          <div class="actions" style="margin-top:12px">
+            <button onclick="clearHistory()">↻ <b>Nur Verlauf</b><br><small>Bank bleibt unverändert</small></button>
+            <button class="danger" onclick="resetAll()">⚠ <b>Klasse komplett zurücksetzen</b><br><small>Bank + Verlauf + aktuelle Phase</small></button>
+          </div>
+        </div>
+      </div>
+      <p class="notice">Die Daten werden lokal auf diesem Gerät gespeichert. Ethik 6 und Ethik 7 besitzen getrennte Zeitbanken und Verläufe.</p>
+    </div>
+  </div>
+</div>
+
+<div class="reward-overlay" id="rewardOverlay" aria-hidden="true">
+  <div class="reward-celebration">
+    <div class="celebration-icon">🏆</div>
+    <div class="celebration-kicker">KLASSENZIEL ERREICHT</div>
+    <h2>Entspannte Stunde!</h2>
+    <p>45 Minuten Zeitbank wurden eingelöst.</p>
+    <div class="celebration-time">45:00</div>
+    <button class="secondary celebration-close" type="button" onclick="closeRewardAnimation()">Weiter</button>
+  </div>
+  <div class="confetti" aria-hidden="true"></div>
+</div>
+
+<div class="redeem-choice" id="redeemChoice" aria-hidden="true">
+  <div class="redeem-choice-box">
+    <div class="choice-icon">⏱️</div>
+    <div class="label">ZEITBANK</div>
+    <h2>45 Minuten erreicht</h2>
+    <p>Was möchtest du machen?</p>
+    <div class="choice-actions">
+      <button class="choice-primary" type="button" onclick="confirmRedeem45()">🏆 Entspannte Stunde einlösen</button>
+      <button class="choice-secondary" type="button" onclick="keepSaving()">⏱️ Weiter auf 90 Minuten sparen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='classroom_manager_v2';
+const PIN='0408';
+const DURATION=300;
+
+let data=loadData();
+let current='6';
+let teacherClassId='6';
+let toastTimer=null;
+
+function normalizeData(){
+  for(const id of ['6','7']){
+    const c=data.classes[id];
+    if(typeof c.target!=='number' || ![45,90].includes(c.target)) c.target=45;
+    if(typeof c.milestoneShown!=='boolean') c.milestoneShown=false;
+    if(!Array.isArray(c.history)) c.history=[];
+    if(!c.phase) c.phase={running:false,startedAt:null,decision:null,credited:false};
+  }
+  save();
+}
+normalizeData();
+
+function defaultClass(){
+  return {
+    bank:0,
+    target:45,
+    milestoneShown:false,
+    history:[],
+    phase:{running:false,startedAt:null,decision:null,credited:false}
+  };
+}
+
+function loadData(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(KEY));
+    if(raw && raw.classes && raw.classes['6'] && raw.classes['7']){
+      return raw;
+    }
+  }catch(e){}
+  return {classes:{'6':defaultClass(),'7':defaultClass()}};
+}
+
+function save(){ localStorage.setItem(KEY,JSON.stringify(data)); }
+function C(){ return data.classes[current]; }
+function TC(){ return data.classes[teacherClassId]; }
+
+function selectClass(id){
+  current=id;
+  render();
+  showToast('Ethik '+id+' ausgewählt');
+}
+
+function startPhase(){
+  const c=C();
+  c.phase={
+    running:true,
+    startedAt:Date.now(),
+    decision:null,
+    credited:false
+  };
+  save();
+  render();
+  showToast('5-Minuten-Phase gestartet');
+}
+
+function toggleTimer(){
+  const c=C();
+  if(c.phase.running){
+    c.phase.running=false;
+    c.phase.startedAt=null;
+    c.phase.decision=null;
+    c.phase.credited=false;
+    save();
+    render();
+    showToast('Phase pausiert');
+  }else{
+    startPhase();
+  }
+}
+
+function resetPhase(){
+  startPhase();
+}
+
+function decide(type){
+  const c=C();
+
+  if(!c.phase.running){
+    startPhase();
+    return;
+  }
+
+  if(c.phase.decision) return;
+
+  c.phase.decision=type;
+
+  if(type==='good'){
+    c.bank+=5;
+    c.phase.credited=true;
+    c.history.push(true);
+    trimHistory(c);
+    save();
+    render();
+    showToast('+5 Minuten gutgeschrieben');
+    checkMilestone();
+  }else{
+    save();
+    render();
+    showToast('Nicht geschafft – kein Zeitgewinn');
+  }
+}
+
+function settleClass(c){
+  if(!c.phase.running || !c.phase.startedAt) return false;
+
+  const elapsed=Date.now()-c.phase.startedAt;
+  if(elapsed < DURATION*1000) return false;
+
+  if(c.phase.decision==='bad'){
+    c.history.push(false);
+    trimHistory(c);
+  }else if(!c.phase.decision && !c.phase.credited){
+    c.bank+=5;
+    c.history.push(true);
+    trimHistory(c);
+  }
+
+  // Immediately begin the next 5-minute phase.
+  c.phase={
+    running:true,
+    startedAt:Date.now(),
+    decision:null,
+    credited:false
+  };
+
+  return true;
+}
+
+function trimHistory(c){
+  if(c.history.length>30) c.history=c.history.slice(-30);
+}
+
+function checkMilestone(){
+  const c=C();
+  const target=c.target||45;
+  if(c.bank>=target && !c.milestoneShown){
+    c.milestoneShown=true;
+    save();
+    openRedeemChoice();
+  }
+}
+
+function render(){
+  const c=C();
+
+  const title=document.getElementById('classTitle');
+  if(title) title.textContent='Ethik '+current+' · Konzentrationsphase';
+
+  const tab6=document.getElementById('tab6');
+  const tab7=document.getElementById('tab7');
+  if(tab6) tab6.classList.toggle('active',current==='6');
+  if(tab7) tab7.classList.toggle('active',current==='7');
+
+  const bank=document.getElementById('bank');
+  if(bank) bank.innerHTML=c.bank+' <span>Minuten</span>';
+
+  const target=c.target||45;
+  const pct=Math.min(100,(c.bank/target)*100);
+  const bp=document.getElementById('bankProgress');
+  if(bp) bp.style.width=pct+'%';
+
+  const goal=document.getElementById('goalText');
+  if(goal) goal.textContent=c.bank+' / '+target+' Minuten';
+
+  const goalPct=document.getElementById('goalPct');
+  if(goalPct) goalPct.textContent=Math.round(pct)+'%';
+
+  const redeem=document.getElementById('redeemBtn');
+  if(redeem){
+    redeem.disabled=c.bank<target;
+    redeem.textContent=c.bank>=target ? (target+' Min. einlösen') : (target+' Min. sammeln');
+  }
+
+  const rewardTitle=document.getElementById('rewardTitle');
+  const rewardText=document.getElementById('rewardText');
+  if(rewardTitle) rewardTitle.textContent=target===45?'Entspannte Stunde':'Doppelte Entspannung';
+  if(rewardText) rewardText.textContent=
+    c.bank>=target
+      ? target+' Minuten erreicht – jetzt entscheiden'
+      : 'Ziel: '+target+' Minuten';
+
+  renderTimer();
+  renderHistory();
+}
+
+function renderTimer(){
+  const c=C();
+  const wrap=document.getElementById('timerWrap');
+  if(!wrap) return;
+
+  let remaining=DURATION;
+  let progress=0;
+
+  if(c.phase.running && c.phase.startedAt){
+    remaining=Math.max(0,DURATION-(Date.now()-c.phase.startedAt)/1000);
+    progress=Math.min(100,((DURATION-remaining)/DURATION)*100);
+  }
+
+  const mins=Math.floor(remaining/60);
+  const secs=Math.floor(remaining%60);
+
+  document.getElementById('time').textContent=
+    String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
+
+  document.getElementById('ring').style.setProperty('--progress',progress+'%');
+
+  wrap.classList.toggle('bad',c.phase.decision==='bad');
+  wrap.classList.toggle('good',c.phase.decision==='good');
+
+  const good=document.getElementById('goodBtn');
+  const bad=document.getElementById('badBtn');
+
+  if(good){
+    good.disabled=!!c.phase.decision || !c.phase.running;
+    good.style.opacity=good.disabled?.4:1;
+  }
+  if(bad){
+    bad.disabled=!!c.phase.decision || !c.phase.running;
+    bad.style.opacity=bad.disabled?.4:1;
+  }
+
+  const startBtn=document.getElementById('startBtn');
+  if(startBtn) startBtn.textContent=c.phase.running?'Ⅱ Pause':'▶ Start';
+
+  const phase=document.getElementById('phase');
+  const status=document.getElementById('status');
+
+  if(!c.phase.running){
+    if(phase) phase.textContent='Bereit für die nächste Phase';
+    if(status){status.className='status';status.textContent='Timer pausiert';}
+  }else if(c.phase.decision==='good'){
+    if(phase) phase.textContent='Erfolgreich markiert';
+    if(status){status.className='status good';status.textContent='+5 Minuten gutgeschrieben';}
+  }else if(c.phase.decision==='bad'){
+    if(phase) phase.textContent='Phase läuft bis 00:00 weiter';
+    if(status){status.className='status bad';status.textContent='Nicht geschafft';}
+  }else{
+    if(phase) phase.textContent='Konzentrationsphase';
+    if(status){status.className='status';status.textContent='';}
+  }
+}
+
+function renderHistory(){
+  const c=C();
+  const el=document.getElementById('dots');
+  if(!el) return;
+
+  el.innerHTML='';
+
+  if(!c.history.length){
+    el.innerHTML='<span class="empty">Noch keine abgeschlossenen Phasen.</span>';
+  }else{
+    c.history.forEach(v=>{
+      const d=document.createElement('div');
+      d.className='dot '+(v?'good':'bad');
+      d.title=v?'Geschafft':'Nicht geschafft';
+      el.appendChild(d);
+    });
+  }
+
+  if(c.phase.running){
+    const d=document.createElement('div');
+    d.className='dot current '+
+      (c.phase.decision==='good'?'good':
+       c.phase.decision==='bad'?'bad':'');
+    el.appendChild(d);
+  }
+}
+
+function adjustBank(amount){
+  current=teacherClassId;
+  const c=C();
+  c.bank=Math.max(0,c.bank+amount);
+  save();
+  render();
+  renderTeacher();
+  showToast((amount>0?'+':'')+amount+' Minuten');
+}
+
+function redeem45(){
+  current=teacherClassId;
+  const c=C();
+  const target=c.target||45;
+
+  if(c.bank<target){
+    renderTeacher();
+    showToast('Noch '+Math.ceil(target-c.bank)+' Minuten bis zum Ziel');
+    return;
+  }
+
+  openRedeemChoice();
+}
+
+function openRedeemChoice(){
+  current=teacherClassId;
+  const c=C();
+  const target=c.target||45;
+
+  const box=document.querySelector('#redeemChoice .redeem-choice-box');
+  if(box){
+    box.querySelector('h2').textContent=target+' Minuten erreicht';
+    box.querySelector('p').textContent='Möchtest du die Zeit jetzt einlösen oder weiter sammeln?';
+
+    const primary=box.querySelector('.choice-primary');
+    const secondary=box.querySelector('.choice-secondary');
+
+    if(primary){
+      primary.textContent='🏆 '+target+' Minuten einlösen';
+    }
+    if(secondary){
+      const next=target===45?90:target+45;
+      secondary.textContent='⏱️ Weiter auf '+next+' Minuten sparen';
+    }
+  }
+
+  const el=document.getElementById('redeemChoice');
+  if(!el)return;
+  el.classList.add('show');
+  el.setAttribute('aria-hidden','false');
+}
+
+function closeRedeemChoice(){
+  const el=document.getElementById('redeemChoice');
+  if(!el)return;
+  el.classList.remove('show');
+  el.setAttribute('aria-hidden','true');
+}
+
+function keepSaving(){
+  current=teacherClassId;
+  const c=C();
+  const oldTarget=c.target||45;
+  const nextTarget=oldTarget===45?90:oldTarget+45;
+
+  c.target=nextTarget;
+  c.milestoneShown=false;
+
+  save();
+  closeRedeemChoice();
+  render();
+  renderTeacher();
+  showToast('Weiter sparen – neues Ziel: '+nextTarget+' Minuten');
+}
+
+function confirmRedeem45(){
+  current=teacherClassId;
+  const c=C();
+  const target=c.target||45;
+
+  if(c.bank<target){
+    closeRedeemChoice();
+    render();
+    renderTeacher();
+    showToast('Nicht genügend Minuten verfügbar');
+    return;
+  }
+
+  c.bank-=target;
+
+  // After redeeming, start a fresh 45-minute cycle.
+  c.target=45;
+  c.milestoneShown=false;
+
+  save();
+  closeRedeemChoice();
+  render();
+  renderTeacher();
+  openRewardAnimation();
+}
+
+function openRewardAnimation(){
+  const el=document.getElementById('rewardOverlay');
+  if(!el)return;
+  el.classList.add('show');
+  el.setAttribute('aria-hidden','false');
+}
+
+function closeRewardAnimation(){
+  const el=document.getElementById('rewardOverlay');
+  if(!el)return;
+  el.classList.remove('show');
+  el.setAttribute('aria-hidden','true');
+  showToast('Entspannte Stunde ist eingelöst');
+}
+
+function clearHistory(){
+  current=teacherClassId;
+  C().history=[];
+  save();
+  render();
+  renderTeacher();
+  showToast('Verlauf gelöscht – Zeitbank bleibt erhalten');
+}
+
+function resetAll(){
+  current=teacherClassId;
+  data.classes[current]=defaultClass();
+  save();
+  render();
+  renderTeacher();
+  showToast('Ethik '+current+' vollständig zurückgesetzt');
+}
+
+function teacherClass(id){
+  teacherClassId=id;
+  current=id;
+  render();
+  renderTeacher();
+  showToast('Lehrerbereich: Ethik '+id);
+}
+
+function teacherStart(){
+  current=teacherClassId;
+  startPhase();
+  renderTeacher();
+}
+
+function teacherPause(){
+  current=teacherClassId;
+  const c=C();
+  c.phase={
+    running:false,
+    startedAt:null,
+    decision:null,
+    credited:false
+  };
+  save();
+  render();
+  renderTeacher();
+  showToast('Phase pausiert');
+}
+
+function teacherResetPhase(){
+  current=teacherClassId;
+  startPhase();
+  renderTeacher();
+}
+
+function teacherClose(){
+  closeTeacher();
+}
+
+function renderTeacher(){
+  const c=TC();
+
+  const t6=document.getElementById('t6');
+  const t7=document.getElementById('t7');
+  if(t6) t6.classList.toggle('active',teacherClassId==='6');
+  if(t7) t7.classList.toggle('active',teacherClassId==='7');
+
+  const bank=document.getElementById('tsBank');
+  const good=document.getElementById('tsGood');
+  const bad=document.getElementById('tsBad');
+  const total=document.getElementById('tsTotal');
+
+  if(bank) bank.textContent=c.bank;
+  if(good) good.textContent=c.history.filter(Boolean).length;
+  if(bad) bad.textContent=c.history.filter(v=>!v).length;
+  if(total) total.textContent=c.history.length;
+}
+
+function openTeacher(){
+  const modal=document.getElementById('pinModal');
+  if(!modal) return;
+  modal.style.display='block';
+
+  const input=document.getElementById('pinInput');
+  if(input){
+    input.value='';
+    setTimeout(()=>input.focus(),100);
+  }
+}
+
+function closePin(){
+  const modal=document.getElementById('pinModal');
+  if(modal) modal.style.display='none';
+}
+
+function checkPin(){
+  const input=document.getElementById('pinInput');
+  if(input && input.value===PIN){
+    closePin();
+    teacherClassId=current;
+    document.getElementById('teacherModal').classList.add('open');
+    renderTeacher();
+  }else{
+    showToast('Falsche PIN');
+    if(input) input.select();
+  }
+}
+
+function closeTeacher(){
+  document.getElementById('teacherModal').classList.remove('open');
+  render();
+}
+
+function fullscreen(){
+  if(document.documentElement.requestFullscreen){
+    document.documentElement.requestFullscreen().catch(()=>{});
+  }
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+// Global timer: both classes retain their own absolute start time.
+// Switching classes never stops the other class's timer.
+setInterval(()=>{
+  let changed=false;
+
+  for(const id of ['6','7']){
+    const c=data.classes[id];
+    if(c.phase.running && c.phase.startedAt){
+      if(settleClass(c)) changed=true;
+    }
+  }
+
+  if(changed) save();
+  render();
+
+  // Automatically ask what to do as soon as the current class reaches its target.
+  const active=C();
+  const target=active.target||45;
+  if(active.bank>=target && !active.milestoneShown){
+    active.milestoneShown=true;
+    save();
+    openRedeemChoice();
+  }
+
+  if(document.getElementById('teacherModal').classList.contains('open')){
+    renderTeacher();
+  }
+},250);
+
+window.addEventListener('load',()=>{
+  render();
+});
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    closeRedeemChoice();
+    closeRewardAnimation();
+  }
+});
+</script>
+</body>
+</html>
